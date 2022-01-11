@@ -1,20 +1,21 @@
 #   Script Name: Prefetch File Pathways
 #        Author: Matthew Tucker
 #  Date Created: 1/4/2022
-# Date Modified: 1/4/2022
+# Date Modified: 1/10/2022
 #   Description: This script will find all the files in a particular directory and subdirectories where
 #                the filename ends in _PASS.HL7 and output the full-path of the file to a text file
 
-#                
-
-######################### EDIT VARIABLES HERE #############################
+############################################################
+#################### Edit Variables Here ###################
+############################################################
 
 $initsearchpath = "D:\HL7InLog" #location of the files you want to sift through
-$dest_folder = "D:\ORMS_TO_RESEND" #ending location you want the files you need copied too
 $output_filename = "filepath_output.txt"
 $date_list_filename = "date_list.txt"
 
-###########################################################################
+############################################################
+################# End Edit Variables Here ##################
+############################################################
 
 $executingScriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $datelistPath = Join-Path $executingScriptDirectory $date_list_filename # makes full path for file that has the list of preformmatted dates by YYYYMMDD
