@@ -1,7 +1,7 @@
 #   Script Name: Move Files At Limit
 #        Author: Matthew Tucker
 #  Date Created: 1/11/2022
-# Date Modified: 1/12/2022
+# Date Modified: 1/16/2022
 #   Description: This script moves a certain amount of files from a source directory to a
 #                destination directory.  This is done to allow outside programs that would process files
 #                in the destination directory time to process them before more files are put in.  The script
@@ -17,7 +17,7 @@
 ############################################################
 
 # The number of files the script grabs at one time.
-$filespersend = 1000;
+$filespersend = 5;
 # Folder where it grabs files from
 $sourcePath = "C:\Users\mtuck\Documents\Files\programming\batch\comp_scripts\shell_batch_log\shutdown_logs_old";
 # Folder it puts the files in place
@@ -34,7 +34,11 @@ $i = 0;
 $mv = 1;
 $cm = 1;
 
-function Start-Sleep($seconds) { # This function is the one provided by ctigeek
+function Start-Sleep { # This function is the one provided by ctigeek
+    param (
+        [parameter (position=0)][int]$seconds
+    ) 
+
     $doneDT = (Get-Date).AddSeconds($seconds)
     while($doneDT -gt (Get-Date)) {
         $secondsLeft = $doneDT.Subtract((Get-Date)).TotalSeconds
@@ -45,7 +49,12 @@ function Start-Sleep($seconds) { # This function is the one provided by ctigeek
     Write-Progress -Activity "Sleeping" -Status "Sleeping..." -SecondsRemaining 0 -Completed
 }
 
-function Find-Files($dpath){
+function Find-Files {
+    param (
+        [parameter (position=0)][String]$dpath
+    )
+
+    
 
     # count the amount of files in the destination folder
     $cf = (Get-ChildItem -File -Path $dpath | Measure-Object).Count
@@ -60,11 +69,16 @@ function Find-Files($dpath){
     return $r; #return whatever the resulting value is
 }
 
-function Move-Files($fileinfo, $i, $fileps, $destPath){
+function MoveFiles {
+    param (
+        [parameter (position=0)][String]$fileinfo,
+        [parameter (position=1)][String]$dPath,
+        [parameter (position=2)][int]$i,
+        [parameter (position=3)][int]$fileps
+    )
     Write-Progress -Id 0  "Currently at $i / $fileps files moved";
-    Move-Item -Path $fileinfo.FullName -Destination $destPath;
+    Move-Item -Path $fileinfo -Destination $dPath;
 }
-
 
 do {
     # Pre-file checks
@@ -77,11 +91,13 @@ do {
 
     # Actual Moving Operations
     if($mv -eq 1){ # If the script should be moving files at all
-        Get-ChildItem -Path $sourcePath -file | Select-Object -first 1 | Move-Files($_, $i, $filespersend, $destPath);
+        #Get-ChildItem -Path $sourcePath -file | Select-Object -first 1 -InputObject | Move-Files($_.FullName, $i, $filespersend, $destPath);
+        Get-ChildItem -Path $sourcePath | Select-Object -first 1 | ForEach-Object { MoveFiles -fileinfo $_.FullName -dPath $destPath -i $i -fileps $filespersend }
+        #Get-ChildItem -Path $sourcePath | Select-Object -first 1 | ForEach-Object { Write-Output $_.FullName }
+        
         $i++; # iterate that it moved a single file
         $source_cnt--; # decrement the total amount of files left
     }
-
     # Post-file checks (after set amount of files have been moved)
     if ($i -eq $filespersend){ # If the amount of files moved has reached the number of files the user wants to moved at one time.
         $mv = 0; # Turn off the ability to move files again for the time being.
